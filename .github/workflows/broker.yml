@@ -1,4 +1,8 @@
-name: Release Trigger
+name: Broker
+
+concurrency:
+  cancel-in-progress: true
+  group: "broker-${{github.ref}}"
 
 on:
   push:
@@ -7,16 +11,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  release_trigger:
+  tests:
+    secrets: inherit
+    uses: ./.github/workflows/tests.yml
+
+  broker:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+    needs:
+      - tests
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Call Test Workflow
-      uses: ./.github/workflows/test.yml
-
     - name: Bump version and push tag
       uses: anothrNick/github-tag-action@1.36.0
       env:
