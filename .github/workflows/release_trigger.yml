@@ -15,20 +15,10 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Call Test Workflow
-      uses: actions/github-script@v3
-      with:
-        script: |
-          const { execSync } = require('child_process');
-          execSync('gh workflow run Test');
+      uses: ./.github/workflows/test.yml
 
-    - name: Bump version and create tag
-      id: tag_version
-      run: |
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "github-actions[bot]"
-        git fetch --tags
-        latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
-        new_tag=$(echo $latest_tag | awk -F. -v OFS=. '{$NF++;print}')
-        git tag $new_tag
-        git push origin $new_tag
-
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@1.36.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
