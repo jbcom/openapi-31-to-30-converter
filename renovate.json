@@ -1,0 +1,14 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "packageRules": [
+    {
+      "packagePatterns": ["^github.com/"],
+      "groupName": "Go dependencies"
+    }
+  ],
+  "golang": {
+    "enabled": true
+  }
+}
