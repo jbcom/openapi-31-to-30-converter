@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.22.4
+
+    - name: Install dependencies
+      run: go mod tidy
+
+    - name: Build for Linux
+      run: GOOS=linux GOARCH=amd64 go build -o openapi-31-to-30-converter-linux cmd/main.go
+
+    - name: Build for MacOS
+      run: GOOS=darwin GOARCH=amd64 go build -o openapi-31-to-30-converter-macos cmd/main.go
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Linux Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./openapi-31-to-30-converter-linux
+        asset_name: openapi-31-to-30-converter-linux
+        asset_content_type: application/octet-stream
+
+    - name: Upload MacOS Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./openapi-31-to-30-converter-macos
+        asset_name: openapi-31-to-30-converter-macos
+        asset_content_type: application/octet-stream
+
+    - name: Bump version and generate changelog
+      uses: conventional-changelog/standard-version@v9
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
